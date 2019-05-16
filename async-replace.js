@@ -24,7 +24,17 @@ function replaceLocal(string, regexp, replacer, callback) {
     replacer.apply(null, args);
 }
 
-module.exports = function(string, regexp, replacer, callback) {
+module.exports = function(stringOrParams, regexp, replacer, callback) {
+    var string
+    var parallelLimit = Infinity
+
+    if (typeof stringOrParams === 'string') {
+      string = stringOrParams
+    } else {
+      string = stringOrParams.string
+      parallelLimit = stringOrParams.parallelLimit
+    }
+
     if (!regexp.global) return replaceLocal(string, regexp, replacer, callback);
 
     var matched = string.match(regexp);
@@ -68,7 +78,7 @@ module.exports = function(string, regexp, replacer, callback) {
         i++;
     }
     result[i] = string.slice(index);
-    async.parallel(callbacks, function(err) {
+    async.parallelLimit(callbacks, parallelLimit, function(err) {
         if (err) return callback(err);
         callback(null, result.join(''));
     });
